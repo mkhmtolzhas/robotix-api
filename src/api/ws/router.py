@@ -1,15 +1,16 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from src.usecases.model_usecase import model_usecase
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from src.usecases.model_usecase import ModelUseCase, get_model_usecase
 from src.core.logger.logger import logger
-from numpy import frombuffer, uint8
-import cv2
 
 
 router = APIRouter()
 
 
 @router.websocket("/ws/detect")
-async def websocket_endpoint(websocket: WebSocket):
+async def websocket_endpoint(
+    websocket: WebSocket,
+    model_usecase: ModelUseCase = Depends(get_model_usecase)
+):
     await websocket.accept()
     client_id = id(websocket)
     logger.info(f"Client {client_id} connected")
@@ -17,10 +18,8 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_bytes()
-            np_array = frombuffer(data, uint8)
-            frame = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
 
-            is_fire = await model_usecase.detect(frame)
+            is_fire = await model_usecase.detect(data)
 
             await websocket.send_text(f"Fire detected: {is_fire}")
 
