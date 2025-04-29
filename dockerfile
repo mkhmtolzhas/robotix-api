@@ -3,7 +3,7 @@ FROM ultralytics/ultralytics:latest-python
 WORKDIR /app
 
 # Устанавливаем Poetry 2.1.2 напрямую
-RUN pip install fastapi uvicorn gunicorn omegaconf websockets
+RUN pip install fastapi=0.115.12 uvicorn=0.34.1 gunicorn=23.0.0 omegaconf=2.3.0 websockets=15.0.1
 # Копируем остальной код
 COPY . .
 

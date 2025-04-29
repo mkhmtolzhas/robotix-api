@@ -1,19 +1,9 @@
-FROM python:3.13-slim
+FROM ultralytics/ultralytics:latest-python
 
-
-# Рабочая директория
 WORKDIR /app
 
 # Устанавливаем Poetry 2.1.2 напрямую
-RUN pip install --no-cache-dir poetry==2.1.2
-
-# Копируем только файлы зависимостей
-COPY pyproject.toml poetry.lock ./
-
-# Устанавливаем только прод-зависимости, без виртуального окружения
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi --no-root
-
+RUN pip install fastapi=0.115.12 uvicorn=0.34.1 gunicorn=23.0.0 omegaconf=2.3.0 websockets=
 # Копируем остальной код
 COPY . .
 
@@ -22,18 +12,4 @@ ENV PORT=8000
 EXPOSE $PORT
 
 # Запуск
-CMD ["gunicorn", "src.main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
-# FROM ultralytics/ultralytics:latest-python
-
-# WORKDIR /app
-
-# # Устанавливаем Poetry 2.1.2 напрямую
-# RUN pip install fastapi uvicorn gunicorn omegaconf websockets
-# # Копируем остальной код
-# COPY . .
-
-# # Переменные и порт
-# EXPOSE 8000
-
-# # Запуск
-# CMD gunicorn src.main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+CMD ["sh", "-c", "gunicorn src.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT"]
